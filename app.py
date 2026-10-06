@@ -188,8 +188,18 @@ def calendar_view():
 @login_required
 def quick_worked(uid,dstr):
     if uid!=session['uid'] and session.get('role')!='admin': return ('Forbidden',403)
-    d=datetime.strptime(dstr,'%Y-%m-%d').date(); hrs=schedule_for(uid,d)
-    save_entry(uid,dstr,[('Worked',hrs)],'',session['uid']); return redirect(request.referrer or url_for('calendar_view'))
+    d=datetime.strptime(dstr,'%Y-%m-%d').date()
+    hrs=schedule_for(uid,d)
+    existing,_ = get_entry(uid,dstr)
+    if existing:
+        flash('That day already has a timesheet entry. Use Edit to change it.','error')
+        return redirect(request.referrer or url_for('calendar_view'))
+    if hrs <= 0:
+        flash('That day is not scheduled. Use Edit if you need to add unscheduled hours.','error')
+        return redirect(request.referrer or url_for('calendar_view'))
+    save_entry(uid,dstr,[('Worked',hrs)],'',session['uid'])
+    flash(f'{hrs:g} worked hours recorded for {d.strftime("%A, %B %-d")}.','ok')
+    return redirect(request.referrer or url_for('calendar_view'))
 
 @app.route('/entry/<int:uid>/<dstr>', methods=['GET','POST'])
 @login_required
