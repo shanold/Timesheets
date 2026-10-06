@@ -270,6 +270,44 @@ def branding():
         flash('Branding updated.','ok'); return redirect(url_for('branding'))
     return render_template('branding.html')
 
+@app.route('/my-report')
+@login_required
+def my_report():
+    uid = session['uid']
+    report_today = date.today()
+    default_start = report_today - timedelta(days=report_today.weekday())
+    start_s = request.args.get('start', default_start.isoformat())
+    end_s = request.args.get('end', report_today.isoformat())
+    try:
+        start_d = datetime.strptime(start_s, '%Y-%m-%d').date()
+        end_d = datetime.strptime(end_s, '%Y-%m-%d').date()
+    except ValueError:
+        flash('Please choose valid report dates.','error')
+        start_d, end_d = default_start, report_today
+    if end_d < start_d:
+        start_d, end_d = end_d, start_d
+    with db() as c:
+        user = c.execute('SELECT * FROM users WHERE id=?',(uid,)).fetchone()
+        entries = c.execute("""SELECT e.id,e.work_date,e.notes,e.updated_at
+            FROM entries e WHERE e.user_id=? AND e.work_date BETWEEN ? AND ?
+            ORDER BY e.work_date""",(uid,start_d.isoformat(),end_d.isoformat())).fetchall()
+        seg_rows = c.execute("""SELECT e.work_date,s.segment_type,s.hours
+            FROM entry_segments s JOIN entries e ON e.id=s.entry_id
+            WHERE e.user_id=? AND e.work_date BETWEEN ? AND ?
+            ORDER BY e.work_date,s.id""",(uid,start_d.isoformat(),end_d.isoformat())).fetchall()
+    by_date = {}
+    totals = {t:0.0 for t in LEAVE_TYPES}
+    for r in seg_rows:
+        by_date.setdefault(r['work_date'], []).append(r)
+        totals[r['segment_type']] = totals.get(r['segment_type'],0.0) + float(r['hours'])
+    rows=[]
+    for e in entries:
+        d=datetime.strptime(e['work_date'],'%Y-%m-%d').date()
+        segs=by_date.get(e['work_date'],[])
+        rows.append({'date':d,'segments':segs,'total':sum(float(x['hours']) for x in segs),'notes':e['notes']})
+    grand_total=sum(totals.values())
+    return render_template('my_report.html',user=user,rows=rows,totals=totals,grand_total=grand_total,start=start_d,end=end_d)
+
 @app.route('/admin/report')
 @login_required
 @admin_required

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}{% block content %}
+<div class="report-page">
+  <div class="toolbar no-print">
+    <div><h2>My Time Report</h2><div class="muted">Choose any date range, then print or save as PDF.</div></div>
+    <button type="button" onclick="window.print()">Print Report</button>
+  </div>
+  <form class="card report-filter no-print" method="get">
+    <div class="two">
+      <label>Start date<input type="date" name="start" value="{{start.isoformat()}}" required></label>
+      <label>End date<input type="date" name="end" value="{{end.isoformat()}}" required></label>
+    </div>
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <section class="print-report card">
+    <div class="print-heading">
+      <div>
+        <h2>{{site.site_name}} — Time Report</h2>
+        <strong>{{user.display_name}}</strong>
+      </div>
+      <div class="report-period">{{start.strftime('%B %-d, %Y')}} – {{end.strftime('%B %-d, %Y')}}</div>
+    </div>
+
+    <div class="tablewrap report-table"><table>
+      <thead><tr><th>Date</th><th>Worked</th><th>Sick</th><th>Vacation</th><th>Personal</th><th>Unpaid</th><th>Other</th><th>Total</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{r.date.strftime('%a, %b %-d, %Y')}}</td>
+          {% for typ in ['Worked','Sick','Vacation','Personal','Unpaid','Other'] %}
+            {% set ns=namespace(h=0) %}{% for s in r.segments %}{% if s.segment_type==typ %}{% set ns.h=ns.h+s.hours %}{% endif %}{% endfor %}
+            <td>{{ns.h|g if ns.h else '—'}}</td>
+          {% endfor %}
+          <td><strong>{{r.total|g}}</strong></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="muted">No time has been recorded in this date range.</td></tr>
+      {% endfor %}
+      </tbody>
+      <tfoot><tr><th>Period totals</th>{% for typ in ['Worked','Sick','Vacation','Personal','Unpaid','Other'] %}<th>{{totals.get(typ,0)|g}}</th>{% endfor %}<th>{{grand_total|g}}</th></tr></tfoot>
+    </table></div>
+
+    <div class="report-summary">
+      <div><span>Hours worked</span><strong>{{totals.get('Worked',0)|g}}</strong></div>
+      <div><span>Paid leave</span><strong>{{(totals.get('Sick',0)+totals.get('Vacation',0)+totals.get('Personal',0))|g}}</strong></div>
+      <div><span>Total recorded</span><strong>{{grand_total|g}}</strong></div>
+    </div>
+    <div class="print-footer">Generated {{today.strftime('%B %-d, %Y')}}</div>
+  </section>
+</div>
+{% endblock %}
