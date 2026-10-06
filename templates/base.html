@@ -1,0 +1,5 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ site.site_name }}</title><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head><body>
+<header {% if site.banner_path %}style="background-image:linear-gradient(#0007,#0007),url('{{site.banner_path}}')"{% endif %}>
+<div class="brand">{% if site.logo_path %}<img src="{{site.logo_path}}">{% endif %}<div><h1>{{site.site_name}}</h1><div>{{site.banner_text}}</div></div></div>
+{% if session.uid %}<nav><a href="{{url_for('calendar_view')}}">Calendar</a>{% if session.role=='admin' %}<a href="{{url_for('admin_users')}}">Employees</a><a href="{{url_for('report')}}">Reports</a><a href="{{url_for('branding')}}">Branding</a>{% endif %}<a href="{{url_for('logout')}}">Logout</a></nav>{% endif %}</header>
+<main>{% for cat,msg in get_flashed_messages(with_categories=true) %}<div class="flash {{cat}}">{{msg}}</div>{% endfor %}{% block content %}{% endblock %}</main></body></html>

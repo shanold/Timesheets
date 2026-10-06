@@ -1,0 +1,15 @@
+services:
+  timesheet:
+    build: .
+    container_name: timesheet
+    ports:
+      - "8090:8080"
+    environment:
+      SECRET_KEY: change-this-secret
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: changeme
+      DATABASE_PATH: /data/timesheet.db
+    volumes:
+      - ./data:/data
+      - ./static/uploads:/app/static/uploads
+    restart: unless-stopped
