@@ -76,7 +76,19 @@ def init_db():
           created_at TEXT NOT NULL
         );
         ''')
-        defaults = {'site_name':'Timesheet','banner_text':'Time Management','logo_path':'','banner_path':''}
+        defaults = {
+            'site_name':'Timesheet',
+            'banner_text':'Time Management',
+            'logo_path':'',
+            'banner_path':'',
+            'header_mode':'image',
+            'header_color':'#1d3557',
+            'header_text_color':'#ffffff',
+            'banner_position_x':'50',
+            'banner_position_y':'50',
+            'banner_size':'cover',
+            'logo_size':'56'
+        }
         for k,v in defaults.items():
             c.execute('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)',(k,v))
         admin_user = os.getenv('ADMIN_USERNAME','admin')
@@ -258,13 +270,38 @@ def edit_user(uid):
 @admin_required
 def branding():
     if request.method=='POST':
-        values={'site_name':request.form.get('site_name','Timesheet').strip() or 'Timesheet','banner_text':request.form.get('banner_text','').strip()}
+        def color(value, default):
+            value=(value or '').strip()
+            if len(value)==7 and value.startswith('#') and all(ch in '0123456789abcdefABCDEF' for ch in value[1:]):
+                return value
+            return default
+        def bounded_int(value, default, low, high):
+            try: return str(max(low,min(high,int(value))))
+            except (TypeError,ValueError): return str(default)
+
+        mode=request.form.get('header_mode','image')
+        if mode not in ('image','color'): mode='image'
+        size=request.form.get('banner_size','cover')
+        if size not in ('cover','contain','auto'): size='cover'
+        values={
+            'site_name':request.form.get('site_name','Timesheet').strip() or 'Timesheet',
+            'banner_text':request.form.get('banner_text','').strip(),
+            'header_mode':mode,
+            'header_color':color(request.form.get('header_color'),'#1d3557'),
+            'header_text_color':color(request.form.get('header_text_color'),'#ffffff'),
+            'banner_position_x':bounded_int(request.form.get('banner_position_x'),50,0,100),
+            'banner_position_y':bounded_int(request.form.get('banner_position_y'),50,0,100),
+            'banner_size':size,
+            'logo_size':bounded_int(request.form.get('logo_size'),56,24,180)
+        }
         for field,key in [('logo','logo_path'),('banner','banner_path')]:
             f=request.files.get(field)
             if f and f.filename:
                 ext=os.path.splitext(secure_filename(f.filename))[1].lower()
                 if ext in ['.png','.jpg','.jpeg','.webp','.gif','.svg']:
                     name=f'{field}_{uuid.uuid4().hex[:10]}{ext}'; f.save(os.path.join(UPLOAD,name)); values[key]='/static/uploads/'+name
+        if request.form.get('remove_logo'): values['logo_path']=''
+        if request.form.get('remove_banner'): values['banner_path']=''
         with db() as c:
             for k,v in values.items(): c.execute('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(k,v))
         flash('Branding updated.','ok'); return redirect(url_for('branding'))

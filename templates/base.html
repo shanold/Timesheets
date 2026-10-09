@@ -1,5 +1,12 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ site.site_name }}</title><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head><body>
-<header {% if site.banner_path %}style="background-image:linear-gradient(#0007,#0007),url('{{site.banner_path}}')"{% endif %}>
-<div class="brand">{% if site.logo_path %}<img src="{{site.logo_path}}">{% endif %}<div><h1>{{site.site_name}}</h1><div>{{site.banner_text}}</div></div></div>
+{% set header_mode = site.get('header_mode','image') %}
+{% set header_color = site.get('header_color','#1d3557') %}
+{% set header_text = site.get('header_text_color','#ffffff') %}
+{% set bx = site.get('banner_position_x','50') %}
+{% set by = site.get('banner_position_y','50') %}
+{% set bs = site.get('banner_size','cover') %}
+{% set logo_size = site.get('logo_size','56') %}
+<header class="site-header" style="--header-color:{{header_color}};--header-text:{{header_text}};--banner-x:{{bx}}%;--banner-y:{{by}}%;--banner-size:{{bs}};--logo-size:{{logo_size}}px;{% if header_mode == 'image' and site.banner_path %}--banner-image:linear-gradient(#0005,#0005),url('{{site.banner_path}}');{% else %}--banner-image:none;{% endif %}">
+<div class="brand">{% if site.logo_path %}<img src="{{site.logo_path}}" alt="Site logo">{% endif %}<div><h1>{{site.site_name}}</h1><div>{{site.banner_text}}</div></div></div>
 {% if session.uid %}<nav><a href="{{url_for('calendar_view')}}">Calendar</a><a href="{{url_for('my_report')}}">My Report</a>{% if session.role=='admin' %}<a href="{{url_for('admin_users')}}">Employees</a><a href="{{url_for('report')}}">Reports</a><a href="{{url_for('branding')}}">Branding</a>{% endif %}<a href="{{url_for('logout')}}">Logout</a></nav>{% endif %}</header>
 <main>{% for cat,msg in get_flashed_messages(with_categories=true) %}<div class="flash {{cat}}">{{msg}}</div>{% endfor %}{% block content %}{% endblock %}</main></body></html>

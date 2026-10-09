@@ -1,1 +1,115 @@
-{% extends 'base.html' %}{% block content %}<div class="card"><h2>Site branding</h2><form method="post" enctype="multipart/form-data"><label>Site name<input name="site_name" value="{{site.site_name}}" placeholder="Bob's Burgers Time Management"></label><label>Banner text<input name="banner_text" value="{{site.banner_text}}"></label><label>Logo image<input name="logo" type="file" accept="image/*"></label><label>Banner/background image<input name="banner" type="file" accept="image/*"></label><button>Save branding</button></form><p class="muted">Upload a logo and/or banner image. Existing images remain in place if you leave a file field blank.</p></div>{% endblock %}
+{% extends 'base.html' %}{% block content %}
+<div class="card branding-card">
+  <h2>Site branding</h2>
+  <p class="muted">Customize the header without changing the rest of the site. You can use a photo banner or a simple flat color.</p>
+
+  <form method="post" enctype="multipart/form-data" id="branding-form">
+    <div class="two">
+      <label>Site name
+        <input name="site_name" value="{{site.site_name}}" placeholder="Bob's Burgers Time Management">
+      </label>
+      <label>Banner text
+        <input name="banner_text" value="{{site.banner_text}}" placeholder="Time Management">
+      </label>
+    </div>
+
+    <h3>Header background</h3>
+    <div class="three branding-grid">
+      <label>Header style
+        <select name="header_mode" id="header_mode">
+          <option value="image" {% if site.get('header_mode','image')=='image' %}selected{% endif %}>Banner image</option>
+          <option value="color" {% if site.get('header_mode','image')=='color' %}selected{% endif %}>Solid color</option>
+        </select>
+      </label>
+      <label>Header color
+        <div class="color-field"><input name="header_color" id="header_color" type="color" value="{{site.get('header_color','#1d3557')}}"><span>{{site.get('header_color','#1d3557')}}</span></div>
+      </label>
+      <label>Header text color
+        <div class="color-field"><input name="header_text_color" id="header_text_color" type="color" value="{{site.get('header_text_color','#ffffff')}}"><span>{{site.get('header_text_color','#ffffff')}}</span></div>
+      </label>
+    </div>
+
+    <div class="two">
+      <label>Banner/background image
+        <input name="banner" type="file" accept="image/*">
+        {% if site.banner_path %}<span class="current-file">Current banner is set.</span>{% endif %}
+      </label>
+      {% if site.banner_path %}<label class="check branding-remove"><input type="checkbox" name="remove_banner"> Remove current banner image</label>{% endif %}
+    </div>
+
+    <div class="three branding-grid image-controls">
+      <label>Image fit
+        <select name="banner_size" id="banner_size">
+          <option value="cover" {% if site.get('banner_size','cover')=='cover' %}selected{% endif %}>Fill header (crop if needed)</option>
+          <option value="contain" {% if site.get('banner_size')=='contain' %}selected{% endif %}>Show whole image</option>
+          <option value="auto" {% if site.get('banner_size')=='auto' %}selected{% endif %}>Original size</option>
+        </select>
+      </label>
+      <label>Horizontal position <span class="range-value" id="x-value">{{site.get('banner_position_x','50')}}%</span>
+        <input name="banner_position_x" id="banner_position_x" type="range" min="0" max="100" value="{{site.get('banner_position_x','50')}}">
+        <span class="range-hints"><span>Left</span><span>Right</span></span>
+      </label>
+      <label>Vertical position <span class="range-value" id="y-value">{{site.get('banner_position_y','50')}}%</span>
+        <input name="banner_position_y" id="banner_position_y" type="range" min="0" max="100" value="{{site.get('banner_position_y','50')}}">
+        <span class="range-hints"><span>Top</span><span>Bottom</span></span>
+      </label>
+    </div>
+
+    <h3>Logo</h3>
+    <div class="three branding-grid">
+      <label>Logo image
+        <input name="logo" type="file" accept="image/*">
+        {% if site.logo_path %}<span class="current-file">Current logo is set.</span>{% endif %}
+      </label>
+      <label>Logo size <span class="range-value" id="logo-value">{{site.get('logo_size','56')}} px</span>
+        <input name="logo_size" id="logo_size" type="range" min="24" max="180" value="{{site.get('logo_size','56')}}">
+        <span class="range-hints"><span>Small</span><span>Large</span></span>
+      </label>
+      {% if site.logo_path %}<label class="check branding-remove"><input type="checkbox" name="remove_logo"> Remove current logo</label>{% endif %}
+    </div>
+
+    <div class="branding-preview-wrap">
+      <strong>Preview</strong>
+      <div class="branding-preview" id="branding-preview" {% if site.get('header_mode','image')=='image' and site.banner_path %}data-banner="{{site.banner_path}}"{% endif %}>
+        <div class="preview-brand">
+          {% if site.logo_path %}<img id="preview-logo" src="{{site.logo_path}}" alt="Logo preview">{% endif %}
+          <div><div class="preview-title" id="preview-title">{{site.site_name}}</div><div id="preview-text">{{site.banner_text}}</div></div>
+        </div>
+      </div>
+    </div>
+
+    <button>Save branding</button>
+  </form>
+</div>
+<script>
+(function(){
+  const form=document.getElementById('branding-form');
+  const preview=document.getElementById('branding-preview');
+  const banner=preview.dataset.banner || '';
+  function update(){
+    const mode=form.header_mode.value;
+    const color=form.header_color.value;
+    const text=form.header_text_color.value;
+    const x=form.banner_position_x.value;
+    const y=form.banner_position_y.value;
+    const size=form.banner_size.value;
+    const logoSize=form.logo_size.value;
+    preview.style.backgroundColor=color;
+    preview.style.color=text;
+    preview.style.backgroundImage=(mode==='image' && banner) ? `linear-gradient(#0005,#0005),url('${banner}')` : 'none';
+    preview.style.backgroundPosition=`${x}% ${y}%`;
+    preview.style.backgroundSize=size;
+    document.getElementById('x-value').textContent=x+'%';
+    document.getElementById('y-value').textContent=y+'%';
+    document.getElementById('logo-value').textContent=logoSize+' px';
+    const logo=document.getElementById('preview-logo'); if(logo){logo.style.width=logoSize+'px';logo.style.height=logoSize+'px';}
+    document.getElementById('preview-title').textContent=form.site_name.value || 'Timesheet';
+    document.getElementById('preview-text').textContent=form.banner_text.value;
+    form.header_color.closest('.color-field').querySelector('span').textContent=color;
+    form.header_text_color.closest('.color-field').querySelector('span').textContent=text;
+  }
+  form.querySelectorAll('input:not([type=file]):not([type=checkbox]),select').forEach(el=>el.addEventListener('input',update));
+  update();
+})();
+</script>
+{% endblock %}
