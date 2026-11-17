@@ -18,7 +18,7 @@ def fmt_g(value):
     except (TypeError, ValueError):
         return value
 
-LEAVE_TYPES = ['Worked','Sick','Vacation','Personal','Unpaid','Other']
+LEAVE_TYPES = ['Worked','Holiday','Sick','Vacation','Personal','Unpaid','Other']
 
 def db():
     conn = sqlite3.connect(DB)

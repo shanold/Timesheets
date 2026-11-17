@@ -22,27 +22,28 @@
     </div>
 
     <div class="tablewrap report-table"><table>
-      <thead><tr><th>Date</th><th>Worked</th><th>Sick</th><th>Vacation</th><th>Personal</th><th>Unpaid</th><th>Other</th><th>Total</th></tr></thead>
+      <thead><tr><th>Date</th><th>Worked</th><th>Holiday</th><th>Sick</th><th>Vacation</th><th>Personal</th><th>Unpaid</th><th>Other</th><th>Total</th></tr></thead>
       <tbody>
       {% for r in rows %}
         <tr>
           <td>{{r.date.strftime('%a, %b %-d, %Y')}}</td>
-          {% for typ in ['Worked','Sick','Vacation','Personal','Unpaid','Other'] %}
+          {% for typ in ['Worked','Holiday','Sick','Vacation','Personal','Unpaid','Other'] %}
             {% set ns=namespace(h=0) %}{% for s in r.segments %}{% if s.segment_type==typ %}{% set ns.h=ns.h+s.hours %}{% endif %}{% endfor %}
             <td>{{ns.h|g if ns.h else '—'}}</td>
           {% endfor %}
           <td><strong>{{r.total|g}}</strong></td>
         </tr>
       {% else %}
-        <tr><td colspan="8" class="muted">No time has been recorded in this date range.</td></tr>
+        <tr><td colspan="9" class="muted">No time has been recorded in this date range.</td></tr>
       {% endfor %}
       </tbody>
-      <tfoot><tr><th>Period totals</th>{% for typ in ['Worked','Sick','Vacation','Personal','Unpaid','Other'] %}<th>{{totals.get(typ,0)|g}}</th>{% endfor %}<th>{{grand_total|g}}</th></tr></tfoot>
+      <tfoot><tr><th>Period totals</th>{% for typ in ['Worked','Holiday','Sick','Vacation','Personal','Unpaid','Other'] %}<th>{{totals.get(typ,0)|g}}</th>{% endfor %}<th>{{grand_total|g}}</th></tr></tfoot>
     </table></div>
 
     <div class="report-summary">
       <div><span>Hours worked</span><strong>{{totals.get('Worked',0)|g}}</strong></div>
-      <div><span>Paid leave</span><strong>{{(totals.get('Sick',0)+totals.get('Vacation',0)+totals.get('Personal',0))|g}}</strong></div>
+      <div><span>Holiday</span><strong>{{totals.get('Holiday',0)|g}}</strong></div>
+      <div><span>Other paid leave</span><strong>{{(totals.get('Sick',0)+totals.get('Vacation',0)+totals.get('Personal',0))|g}}</strong></div>
       <div><span>Total recorded</span><strong>{{grand_total|g}}</strong></div>
     </div>
     <div class="print-footer">Generated {{today.strftime('%B %-d, %Y')}}</div>

@@ -6,7 +6,8 @@ Self-hosted employee attendance and PTO tracker.
 - Employee/admin login
 - Reusable weekly schedules with effective dates
 - One-click **I was here** on any scheduled day with no entry, including past dates, to record the full scheduled hours
-- Split days: Worked + Sick/Vacation/Personal/etc.
+- Split days: Worked + Holiday/Sick/Vacation/Personal/etc.
+- Holiday pay can be recorded alongside worked hours on the same date (for example, 8 Holiday + 6 Worked)
 - Extra or short hours are visibly flagged
 - Sick, Vacation, and Personal balances
 - Admin employee management
@@ -27,7 +28,7 @@ Self-hosted employee attendance and PTO tracker.
 Data persists in `./data` and uploaded branding images persist in `./static/uploads`.
 
 ## Notes
-PTO balances are entered by an administrator as available allocations. Sick, Vacation, and Personal hours recorded on timesheets are automatically deducted from the displayed remaining balance.
+PTO balances are entered by an administrator as available allocations. Sick, Vacation, and Personal hours recorded on timesheets are automatically deducted from the displayed remaining balance. Holiday hours are paid time but do not reduce any PTO balance, and can be combined with Worked hours on the same day.
 
 ## v0.1.1 change
 The **I was here** button is available on every scheduled day that has no existing entry, regardless of whether the date is today, in the past, or in the future. Once a day has an entry, use **Edit** instead so the quick button cannot accidentally overwrite split-day/PTO details.
